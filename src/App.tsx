@@ -79,8 +79,11 @@ function QuestionText({ text }: { text?: string }) {
 
 // ============================================================
 
-const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbwtjTq25C0pURGGNsPMJ76iAbpzM3R9awJmswQUsQb1NrEG790gZc-_gsvPoXOTcCab/exec";
+// ============================================================
+// เรียกผ่าน Vercel Cache Proxy (/api/proxy) แทนการยิงตรงไป
+// Apps Script เพื่อลดโหลดตอนคนใช้พร้อมกันเยอะ (ดู api/proxy.js)
+// ============================================================
+const APPS_SCRIPT_URL = "/api/proxy";
 
 const LOOKER_STUDIO_URL =
   "https://datastudio.google.com/reporting/c1d52161-5387-4f00-bcda-b70b54116fc5/page/p_h1rlukz72d";
