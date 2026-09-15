@@ -99,15 +99,50 @@ function getModeFromUrl() {
   catch { return "normal"; }
 }
 
+// ============================================================
+// API — เพิ่ม Timeout + Retry เพื่อความเสถียร
+// ============================================================
+// GET: retry ได้อย่างปลอดภัยเสมอ (read-only ไม่มีผลข้างเคียง)
+// POST: retry เฉพาะตอน network error ก่อนถึง Server เท่านั้น
+//       ไม่ retry ตอน timeout เพราะไม่รู้ว่าคำสั่งไปถึง Server แล้วหรือยัง
+//       (กันบันทึกผลซ้ำ / หักเงินซ้ำ / ตีบอสซ้ำ)
+const REQUEST_TIMEOUT_MS = 15000;
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function fetchWithRetry(url, options, { retries = 2, retryOnTimeout = true } = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res;
+    } catch (err: any) {
+      clearTimeout(timer);
+      const isTimeout = err?.name === "AbortError";
+      lastErr = err;
+      const canRetry = attempt < retries && (retryOnTimeout || !isTimeout);
+      if (!canRetry) throw err;
+      await sleep(700 * (attempt + 1)); // รอเพิ่มขึ้นทีละรอบก่อนลองใหม่
+    }
+  }
+  throw lastErr;
+}
+
 async function apiGet(params) {
   const query = new URLSearchParams(
     Object.entries(params).reduce((acc,[k,v])=>{ acc[k]=String(v); return acc; },{})
   );
-  const res = await fetch(`${APPS_SCRIPT_URL}?${query}`);
+  const res = await fetchWithRetry(`${APPS_SCRIPT_URL}?${query}`, { method:"GET" },
+    { retries: 2, retryOnTimeout: true });
   return res.json();
 }
 async function apiPost(body) {
-  const res = await fetch(APPS_SCRIPT_URL, { method:"POST", body:JSON.stringify(body) });
+  const res = await fetchWithRetry(APPS_SCRIPT_URL, { method:"POST", body:JSON.stringify(body) },
+    { retries: 1, retryOnTimeout: false });
   return res.json();
 }
 
