@@ -1276,6 +1276,11 @@ function ChallengeScreen({ challengeConfig, student, pool, onFinish, theme, boss
     bossHpRef.current = newBossHp;
     setBossHp(newBossHp);
 
+    // ⚡ กันบันทึกซ้ำถ้า retry logic ยิงซ้ำ (เช่น response หลุดหลังจาก
+    // Server ประมวลผลสำเร็จไปแล้ว) — สร้างรหัสไม่ซ้ำกันต่อ session
+    // ให้ Server เช็คก่อนว่าเคยเห็นรหัสนี้แล้วหรือยัง
+    const attemptId = `${student.id}_${boss.name}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+
     apiPost({
       action:    "saveBossDamage",
       bossName:  boss.name,
@@ -1284,6 +1289,7 @@ function ChallengeScreen({ challengeConfig, student, pool, onFinish, theme, boss
       damage:    totalDmg,
       questionId: "session",
       setName:   "session",
+      attemptId,
     }).catch(() => {});
 
     return { totalDmg, pen, newBossHp };
