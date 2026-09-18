@@ -18,7 +18,7 @@
 // ของตัวเอง ไม่ได้ใช้ cache ร่วมกัน
 // ============================================================
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwtjTq25C0pURGGNsPMJ76iAbpzM3R9awJmswQUsQb1NrEG790gZc-_gsvPoXOTcCab/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_p_NahJSDHe1Yq3S9Zcf_c3rAEsG--ksjZwraqEBIUo-DE0PX1CwQ4Ag9KCAszQiiwQ/exec";
 
 // ── TTL (วินาที) ต่อ action ──────────────────────────────────
 // sMaxAge = cache อยู่ที่ Vercel Edge นานเท่าไหร่
